@@ -1,0 +1,44 @@
+
+name: Build OverlayMod APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'OverlayMod.zip'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar projeto
+        uses: actions/checkout@v5
+
+      - name: Configurar Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Extrair projeto
+        run: |
+          unzip -o OverlayMod.zip -d .
+          test -f OverlayMod/app/build.gradle.kts
+
+      - name: Compilar APK
+        working-directory: OverlayMod
+        run: gradle assembleDebug
+
+      - name: Salvar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OverlayMod-apk
+          path: OverlayMod/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
